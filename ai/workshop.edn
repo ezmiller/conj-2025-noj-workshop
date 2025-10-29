@@ -1,0 +1,15 @@
+{:title "Empowering Data Analysis through Scicloj"
+ :presenter {:name "Ethan Miller"
+            :affiliation "SciCloj community"}
+ :updated #inst "2025-10-12T00:00:00.000-00:00"
+ :paths {:overview "docs/workshop/overview.md"
+         :goals "docs/workshop/teaching-goals.md"
+         :plan "docs/workshop/analysis-plan.md"
+         :log "notebooks/clt-311-notes.md"
+         :dataset-notes "data/clt-311/README.md"}
+ :dataset {:name "Charlotte 311"
+           :status :in-progress
+           :source-url :todo
+           :license :todo}
+ :goals [:reproducibility :functional-data :standardized-apis :accessibility]
+ :notes "Working metadata to support continuity across sessions and simple automation."}

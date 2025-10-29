@@ -1,0 +1,16 @@
+{:deps {org.scicloj/noj {:mvn/version "2-beta17"}
+        criterium/criterium {:mvn/version "0.4.6"}
+        }
+ :paths ["notebooks"]
+ :aliases {
+           :clay {
+                  :extra-deps {org.scicloj/clay {:mvn/version "2-beta23"}}
+                  :main-opts ["-m" "scicloj.clay.v2.main"]}
+
+           :render {
+                    :extra-deps {org.scicloj/clay {:mvn/version "2-beta23"}}
+                    :main-opts ["-m" "scicloj.clay.v2.main" "--render" "notebooks/index.clj" "notebooks/clt-311.clj"]}
+
+           :check {
+                   :extra-paths ["dev"]
+                   :main-opts ["-m" "dev.check"]}}}

@@ -1,0 +1,15 @@
+{:role            :supportive
+ :notebook-edits  {:policy :by-request-only}
+ :ideas           {:default-verbosity :low
+                   :plans :on-request-only}
+ :consent         {:ask-before-snippets true   
+                   :ask-before-plans    true   
+                   :ask-before-edits    true}  
+ :interaction     {:question-first true        
+                   :max-suggestions-per-turn 1 
+                   :max-code-blocks-per-turn 0} 
+ :formatting      {:style :recipe
+                   :bullets true}
+ :browsing        {:default :on-request-only}
+ :file-safety     {:size-check true}
+ :snippets        {:paste-only true}}

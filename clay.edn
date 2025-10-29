@@ -1,0 +1,6 @@
+{:remote-repo {:git-url "https://github.com/ezmiller/conj-2025-noj-workshop"
+               :branch "main"}
+ :quarto {:title "Conj 2025 Noj Workshop"}
+ :browse true
+ :deps [:mermaid]
+}
