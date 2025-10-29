@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-RELEASE_TAG="v1.0-data"
+RELEASE_TAG="v1-data"
 DATA_DIR="notebooks/data"
 DOWNLOAD_RAW=false
 
