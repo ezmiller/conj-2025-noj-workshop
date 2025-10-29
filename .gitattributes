@@ -1,3 +1,2 @@
 # Exclude AI/automation artifacts from release archives
 ai export-ignore
-*.csv filter=lfs diff=lfs merge=lfs -text

@@ -4,5 +4,6 @@ docs/.clay*
 .calva
 .clj-kondo
 .lsp
-data/*
-notebooks/data/*
+
+# Large data files - download via download_data.sh
+*.csv
