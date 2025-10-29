@@ -19,7 +19,8 @@ mkdir -p "$DATA_DIR"
 
 # Files to download
 FILES=(
-    "Service_Requests_311.csv"
+    "Service_Requests_311.csv",
+    "clt-311-workshop.csv"
 )
 
 for FILE in "${FILES[@]}"; do
