@@ -226,6 +226,7 @@
      (fn [ds]
        (tcc// (ds :COUNT)
               (ds :MONTHS_IN_SEASON))))
+    (tc/order-by :MONTHLY_RATE)
     (plotly/layer-bar
      {:=x :CMPD_DIVISION
       :=y :MONTHLY_RATE
