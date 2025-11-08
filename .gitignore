@@ -1,9 +1,11 @@
 .cpcache
 .nrepl-port
-docs/.clay*
+docs/*
 .calva
 .clj-kondo
 .lsp
 
 # Large data files - download via download_data.sh
 *.csv
+
+# Ignore 
