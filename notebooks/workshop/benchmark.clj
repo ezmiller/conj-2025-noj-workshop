@@ -30,9 +30,10 @@
                ;; Aggregation forces iteration and likely intermediate boxing [3]
                :sum-A (core/reduce + (core/map :A rows))}))
        core/doall))
-;; This approach leads to an "explosion of intermediate types" and millions of garbage objects [3].
+;; This approach leads to an "explosion of intermediate types" and millions of garbage objects.
 ;; It loses the benefit of CPU vectorization 
 
+(comment 
 (defn time-ds-group-by [ds-data]
   (tmdr/group-by-column-agg
    :G ; Grouping column
@@ -62,3 +63,5 @@
 ;; Expected result: Significantly faster; the dataset library "dominates everything else by factors" [10].
 
 (c/quick-bench (time-ds-group-by ds-data))
+
+)
