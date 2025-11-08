@@ -20,11 +20,10 @@
 (def workshop-data
   (tc/select-rows raw-data
                   (fn [row]
-                    (and (>= (:FISCAL_YEAR row) 2020)
-                         (<= (:FISCAL_YEAR row) 2025)))))
+                    (<= (:FISCAL_YEAR row) 2024))))
 
 ;; How many requests per year?
-(-> workshop-data
+(-> raw-data
     (tc/group-by :FISCAL_YEAR)
     (tc/aggregate {:count tc/row-count}))
 
@@ -34,6 +33,6 @@
 
 (-> workshop-data
     (tc/group-by :FISCAL_YEAR)
-    (tc/random 100000 {:seed 42 :repeat? false})
+    (tc/random 50000 {:seed 42 :repeat? false})
     (tc/ungroup)
     (tc/write! "notebooks/data/clt-311-workshop.csv"))
