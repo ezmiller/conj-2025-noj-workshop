@@ -5,8 +5,6 @@
             [java-time :as jt]
             [clojure.core :as c]))
 
-
-
 (def workshop-data
   (tc/dataset "notebooks/data/clt-311-workshop.csv" {:key-fn keyword}))
 
@@ -58,71 +56,91 @@
       :$group-name
       set))
 
-;; And we'll want to roll these request counts up by some cadence. Let's
-;; try monthly by year.
-;; (def to-year-month [datetime]
-;;   (java-time/year-month datetime))
+;; And we'll want to roll these request counts up by some cadence. Let's try
+;; monthly by year. To do that we roll up date around the first day of each
+;; month.
 
-;; Now we want to plot these
+;; Let's first build a function that can convert time that way
+(defn ->first-day-of_month [str]
+  (->> str
+       (jt/local-date src-fmt)
+       (#(jt/adjust % :first-day-of-month))))
+
+;; Test that it works. 
+(-> workshop-data
+    :RECEIVED_DATE
+    first
+    ->first-day-of_month)
+
+;; Now let's work on the data prep
+(-> workshop-data
+    ;; first we want to select the samples that interest us
+    (tc/select-rows
+     (fn [row]
+       (-> row
+           :REQUEST_TYPE
+           top-five-requests)))
+    ;; now let's add a column for the roll up
+    (tc/add-column
+     :FIRST_DAY_OF_MONTH
+     (fn [ds]
+       (map ->first-day-of_month (:RECEIVED_DATE ds))))
+    ;; then we can do our grouping
+    (tc/group-by [:REQUEST_TYPE :FIRST_DAY_OF_MONTH])
+    (tc/aggregate {:COUNT tc/row-count}))
+
+;; now we can plot but let's package this data up
 (def year-month-data
   (-> workshop-data
+      ;; first we want to select the samples that interest us
       (tc/select-rows
-       (fn [row] (-> row
-                     :REQUEST_TYPE
-                     top-five-reqests)))
+       (fn [row]
+         (-> row
+             :REQUEST_TYPE
+             top-five-requests)))
+      ;; now let's add a column for the roll up
       (tc/add-column
-       :YEAR_MONTH
+       :FIRST_DAY_OF_MONTH
        (fn [ds]
-         (map (fn [str]
-                (str (jt/adjust
-                      (jt/local-date src-fmt str)
-                      :first-day-of-month)))
-              (:RECEIVED_DATE ds))))
-      (tc/group-by [:REQUEST_TYPE :YEAR_MONTH])
-      (tc/aggregate {:COUNT tc/row-count})))
-
-(tc/head year-month-data)
+         (map ->first-day-of_month (:RECEIVED_DATE ds))))
+      ;; then we can do our grouping
+      (tc/group-by [:REQUEST_TYPE :FIRST_DAY_OF_MONTH])
+      (tc/aggregate {:COUNT tc/row-count})
+      (tc/order-by :FIRST_DAY_OF_MONTH)))
 
 ;; Now let's plot it using tableplot + plotly. We'll try the layer-line function
 ;; first
 (-> year-month-data
+    (tc/order-by :FIRST_DAY_OF_MONTH)
     (plotly/layer-line
-     {:=x :YEAR_MONTH
-      :=color :REQUEST_TYPE
-      :=y :COUNT}))
-
-;; Okay that's off a bit. We just need to order the data.
-(-> year-month-data
-    (tc/order-by :YEAR_MONTH)
-    (plotly/layer-line
-     {:=x :YEAR_MONTH
+     {:=x :FIRST_DAY_OF_MONTH
       :=color :REQUEST_TYPE
       :=y :COUNT}))
 
 ;; Still maybe we can improve the formatting a bit, move the legend
 ;; above.
-(-> year-month-data
-    (tc/order-by :YEAR_MONTH)
+(-> year-month-data 
     (plotly/base
-     {:=layout {:xaxis {:tickformat "%Y-%m"
-                        :dtick "M6"
-                        :tickangle -45}
-                :legend
+     {:=layout  {:legend
                 {:orientation "h"
                  :y 1.5}}})
     (plotly/layer-line
-     {:=x :YEAR_MONTH
+     {:=x :FIRST_DAY_OF_MONTH
       :=color :REQUEST_TYPE
       :=y :COUNT}))
 
 ;; One can see a pattern here, but it's a bit hard to tell.  Let's try
-;; collapsing the year data and simply grouping by the month.
+;; collapsing the year data and simply grouping by the month. We could also
+;; exclude 2020 (Covid!)
 (def month-data
   (-> workshop-data
       (tc/select-rows
        (fn [row] (-> row
                      :REQUEST_TYPE
                      top-five-requests)))
+      #_(tc/select-rows
+         (fn [row] (-> row :FISCAL_YEAR (not= 2020))))
+      ;; this time we'll use map-columns, another way to add a column
       (tc/map-columns :MONTH
                       [:RECEIVED_DATE]
                       (fn [datestr]
@@ -132,7 +150,7 @@
                              jt/value)))
       (tc/order-by :MONTH)))
 
-(-> month-data
+(-> month-data 
     (tc/group-by [:REQUEST_TYPE :MONTH])
     (tc/aggregate {:COUNT tc/row-count})
     (plotly/base
@@ -145,12 +163,10 @@
       :=color :REQUEST_TYPE
       :=y :COUNT}))
 
+;; Okay so this shows a peak in the spring it looks like and that stands to
+;; reason. What can we find in the geographical concentration of these requests?
 
-;; Okay so this shows a peak in the summer for NON_RECYCLABLE_ITEMS.
-;; Maybe we can find a geographical concentration that might give us 
-;; a hint.
-
-;; let's see what geographic data we have
+;; Let's see what geographic data we have
 (-> workshop-data
     (tc/select-columns [:COUNCIL_DISTRICT :CMPD_DIVISION :NEIGHBORHOOD_PROFILE_AREA :ZIP_CODE])
     (tc/head 10))
@@ -169,12 +185,10 @@
      {:=x :CMPD_DIVISION
       :=y :COUNT}))
 
-;; That's interesting b/c we see a big bump in SOUTH. Looking this up, this is
-;; an area of relative affluence. Also single-family homes. Could be there's an
+;; That's interesting b/c we see a big bump in SOUTH. Looking up South, this is
+;; an area of relative affluence and single-family homes. Could be there's an
 ;; association of recycling with affluence and/or home types? Maybe also if
-;; these are homes the acquire more and throw out more?
-
-;; Let's see if there's any difference with respect to summer. 
+;; these are homes the acquire more and throw out more? 
 
 ;; First we'll just package up the request type we are looking at
 (def non-recyclable-data
@@ -186,7 +200,7 @@
 ;; Then we will define a helper to let us distinguish summer
 (defn summer-month? [month-number]
   (and (>= month-number 6)
-       (< month-number 10)))
+       (< month-number 9)))
 
 ;; We'll group by summer months as well
 (-> non-recyclable-data
@@ -202,34 +216,41 @@
       :=color :SUMMER_MONTH?
       :=barmode "group"}))
 
-;; But this isn't fair since there are more mnon-summer months. We can use
-;; a monthly rate of calls instead.
+;; Okay but this is strange right? What's wrong here? 
 
-;; Monthly rate is the avg rate during summer months versus non-summer. 
-;; So we'll do a roll up of data
+;; Summer numbers are way less, but this isn't supriring. There are fewer summer
+;; months! So what can we do? Well, we can use a monthly rate, i.e. the avg rate
+;; during summer months versus non-summer. 
+
 (-> non-recyclable-data
+    
+    ;; we did this above
     (tc/add-column
      :SUMMER_MONTH?
      (comp #(map summer-month? %) :MONTH))
-    (tc/group-by [:SUMMER_MONTH? :CMPD_DIVISION])
+    (tc/group-by [:CMPD_DIVISION :SUMMER_MONTH?])
     (tc/aggregate {:COUNT tc/row-count})
+    (tc/order-by :COUNT)
+
     ;; now we can add a column for convenience with number of
-    ;; months in the season
+    ;; months in the season 
     (tc/add-column
      :MONTHS_IN_SEASON
      (fn [ds]
-       (map {true 4 false 8}
+       (map {true 3 false 9}
             (:SUMMER_MONTH? ds))))
-    ;; Then we can do the calculation
+    
+    ;; Then we can do the calculation using tablecloth's column api
     (tc/add-column
-     :MONTHLY_RATE
+     :SEASONAL_RATE
      (fn [ds]
        (tcc// (ds :COUNT)
               (ds :MONTHS_IN_SEASON))))
-    (tc/order-by :MONTHLY_RATE)
+    (tc/order-by :SEASONAL_RATE)
+
+    ;; now we plot
     (plotly/layer-bar
      {:=x :CMPD_DIVISION
-      :=y :MONTHLY_RATE
-      :=color :SUMMER_MONTH?
-      :=barmode "group"})
-    )
+      :=y :SEASONAL_RATE
+      :=color :SUMMER_MONTH? 
+      :=barmode "group"}))
