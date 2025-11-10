@@ -7,14 +7,6 @@
 
 ## SECTION 0: Theory - Why Datasets? (8-10 min)
 
-### What to Do
-1. Create synthetic data with N=10M rows
-2. Benchmark row-major approach (sequence of maps with group-by)
-3. Create dataset version of same data
-4. Benchmark column-major approach (tc/group-by)
-5. Show the dramatic speedup (likely ~10-50x faster)
-6. Tour down the stack: Dataset → Map → FastStruct → Columns
-
 ### Transitions
 - "Before we dive into real data, let's understand why we're using datasets"
 - "Watch this - same operation, different data structures"
@@ -30,7 +22,7 @@
 **What to Say:**
 - "For small data, regular Clojure structures are fine"
 - "But at scale, these optimizations really matter"
-- "We're not saying Clojure is slow - we're saying datasets are optimized for this use case"
+- "We're not saying Clojure is slow. Sometimes you really want a vector that can take just anything. We're saying datasets are optimized for this use case"
 
 ### 🎯 TEACHING MOMENT #2 - Datasets ARE Maps
 **Tour the type system:**
@@ -71,26 +63,14 @@
 - "Let's create a manageable workshop dataset"
 
 ### 🎯 TEACHING MOMENT #3 - Row Functions Take Maps
-**When using select-rows:**
-```clojure
-(tc/select-rows raw-data
-                (fn [row]
-                  (<= (:FISCAL_YEAR row) 2024)))
-```
-
-**Point out:**
+**When using select-rows, point out:**
 - "The selector function takes each row"
 - "The row IS a map - we access it with keyword `:FISCAL_YEAR`"
 - "This is that map-like interface we just talked about"
 
 ### 🎯 TEACHING MOMENT #4 - Threading Macros Introduction
-**First pipeline:**
-```clojure
-(-> raw-data
-    (tc/group-by :FISCAL_YEAR)
-    (tc/aggregate {:COUNT tc/row-count}))
-```
 
+**First pipeline:**
 **THIS IS CRITICAL - Emphasize:**
 - "Notice the `->` arrow - this is threading"
 - "Data flows top to bottom through functions"
@@ -221,20 +201,6 @@ After creating `year-month-data`:
 3. **Map-like Interface** - datasets/rows/columns all feel native
 4. **Namespace Hygiene** - only `def` what you'll reuse
 5. **Performance** - structural sharing, typed columns, optimized ops
-
-### The Pandas Contrast (FINAL)
-
-**Python Problem:**
-- Mutable by default
-- Need explicit `.copy()` (expensive)
-- View vs copy confusion
-- "Did I mutate?" mental overhead
-
-**Clojure Solution:**
-- Immutable by default
-- No copying needed (structural sharing)
-- Clear data flow
-- Safe by design
 
 ---
 
