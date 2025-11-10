@@ -1,4 +1,4 @@
-(ns workshop.other-questions)
+(ns challenges.other-questions)
 
 ;; ## 1. What is the geogrphical distribution of requests? Any concentrations?
 ;; ## 1. Has there been a change in top requests over the years?
