@@ -64,4 +64,4 @@
     (tc/group-by :FISCAL_YEAR)
     (tc/random 30000 {:seed 42 :repeat? false})
     (tc/ungroup)
-    (tc/write! "notebooks/data/clt-311-workshop.csv"))
+    (tc/write! "data/clt-311-workshop.csv"))

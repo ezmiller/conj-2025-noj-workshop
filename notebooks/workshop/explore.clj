@@ -1,12 +1,11 @@
 (ns workshop.explore
-  (:require [tablecloth.api :as tc]
-            [tablecloth.column.api :as tcc]
+  (:require [tablecloth.api :as tc] 
             [scicloj.tableplot.v1.plotly :as plotly]
             [java-time :as jt]
             [clojure.core :as c]))
 
 (def workshop-data
-  (tc/dataset "notebooks/data/clt-311-workshop.csv" {:key-fn keyword}))
+  (tc/dataset "data/clt-311-workshop.csv" {:key-fn keyword}))
 
 ;; Let's first check out what are the most common
 ;; request types.
