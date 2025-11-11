@@ -2,7 +2,7 @@
 set -e
 
 RELEASE_TAG="v1-data"
-DATA_DIR="notebooks/data"
+DATA_DIR="data"
 DOWNLOAD_RAW=false
 
 # Parse arguments
