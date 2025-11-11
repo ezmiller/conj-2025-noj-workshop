@@ -16,6 +16,9 @@
   (doall (make-synthetic-data N)))
 
 (take 3 clj-data)
+;;=> ({:A 0.1609610807238414, :B 0.13091527472290998, :G "0"}
+;;    {:A 0.5076005921426744, :B 0.4274085497119422, :G "1"}
+;;    {:A 0.36144653864047704, :B 0.2868503683146011, :G "2"})
 
 ;; First we'll benchmark using standard data structures. Importantly, this is
 ;; also a row-major operation. We are detaling with a sequence of maps, where
@@ -29,6 +32,7 @@
               :sum-a (reduce + (map :A rows))}))
       doall ;; result is a lazy sequence, results are deferred unless we do this
       ))
+;;=> "Execution time mean : 1.231470 sec"
 
 (def ds-data
   (tc/dataset (make-synthetic-data N)))
@@ -37,18 +41,19 @@
  (-> ds-data
      (tc/group-by :G)
      (tc/aggregate {:sum-a #(tcc/sum (:A %))})))
+;;=> "Execution time mean : 50.273668 ms"
 
 ;; What accounts for this speed up? 
 ;; - Row-major (sequences of maps) versus column-major (datasets!) 
 ;; - Don't need to carry column names in each row. Operate on column.
 ;; - Instead of dealing with 1 million map objects we have three column objects
-;; - Strongly typed, packed memory in continuous memory enables optimizations
+;; - Strongly typed and packed in continuous memory enables optimizations
 
 ;; Clojure isn't slow but the dataset structure enables further optimizations in
-;; a circumstance in which we often want to know exaclty what our data within
+;; a circumstance in which we often want to know exactly what our data within
 ;; each column is. 
 
-;; ## Let's peer into the stack
+;; ## Let's peer into the stack. 
 
 ;; What is the ds-data?
 
@@ -63,7 +68,8 @@
 ;; It's values are the columns.
 (vals ds-data)
 
-;; If we look at it as rows it's also still a sequence of maps
+;; If we look at it as rows it's also still a sequence of maps.
+;; So we can also think of this data as a sequence of maps still!
 (-> ds-data
     (tc/rows :as-maps)
     (->> (take 5))
@@ -75,41 +81,12 @@
     first
     (assoc :z 10))
 
-;; But actually this is not just a map...
+;; But actually this is not just a map.
 (-> ds-data
-    (tc/rows)
+    (tc/rows :as-maps)
     first
     type)
 
-;; This is a type defined in one of the libraries underlying
-;; this that provides a view onto what is the actual way this
-;; data is stored: in packed, typed arrays. 
-
-;; Now we'll look at these arrays or "columns" as we call them in the dataset context.
-(-> ds-data
-    tc/columns
-    first)
-
-;; if we look at it's type. it is a column as defined by 
-;; tech.ml.dataset
-(-> ds-data
-    tc/columns
-    first
-    class)
-
-;; but we can also inspect the type of the items it contains
-;; using the colun api (tcc)
-(-> ds-data
-    tc/columns
-    first
-    tcc/typeof)
-
-;; Properties
-(def a-column
-  (ds-data :A))
-
-;; Random access
-(nth a-column 5)
-
-;; Countable
-(count a-column)
+;; It is another special type -- a view -- onto the packed typed arrays. We can
+;; interact with this data still as a sequence of maps but underneath what we
+;; have are packed type arrays that enable radical optimziation.
