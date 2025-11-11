@@ -1,6 +1,5 @@
 {:deps {org.scicloj/noj {:mvn/version "2-beta17"}
-        criterium/criterium {:mvn/version "0.4.6"}
-        }
+        criterium/criterium {:mvn/version "0.4.6"}}
  :paths ["notebooks"]
  :aliases {
            :clay {
