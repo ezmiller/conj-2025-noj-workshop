@@ -7,14 +7,15 @@
 
 ;; The Clojure data stack evolved organically out of work on large amounts of
 ;; data. Normally, as we'll see, you'd work with sequences of maps. And in many
-;; cases that is fine. But sometimes, you runinto limits. Let's take a look.
+;; cases that is fine. But sometimes, you run into limits. Let's take a look.
 
 (def N 10000000)
 
+;; A sequence of maps - row major
 (def clj-data
   (doall (make-synthetic-data N)))
 
-(first clj-data)
+(take 3 clj-data)
 
 ;; First we'll benchmark using standard data structures. Importantly, this is
 ;; also a row-major operation. We are detaling with a sequence of maps, where
@@ -26,56 +27,34 @@
       (map (fn [[group-key rows]]
              {:group-key group-key
               :sum-a (reduce + (map :A rows))}))
-      doall))
+      doall ;; result is a lazy sequence, results are deferred unless we do this
+      ))
 
 (def ds-data
   (tc/dataset (make-synthetic-data N)))
-
-(first ds-data)
 
 (quick-bench-str
  (-> ds-data
      (tc/group-by :G)
      (tc/aggregate {:sum-a #(tcc/sum (:A %))})))
 
-;; What accounts for this speed up? Several things:
-;;  - In the row-major approach, we hold a sequence of maps. In each of those
-;;    maps, we hold the column names as labels for each value. We don't need to
-;;    do that in the column-major approach. 
-;;  - When we use core Clojure data structures, as convenient as they are, we
-;;    end up with an explosion of intermediate copies that slow down processing
-;;    when working with large amounts of data. For many uses this is just fine.
-;;    These inefficiences are magnified as the processes become more complex.
-;;  - The dataset data structures are optimized to avoid the explosion of
-;;    intermediate copies that woudl normally occur. Moreover, as we'll see, the
-;;    columns are strongly typed and packed in continuous memory, which opens up
-;;    further optimizations.
+;; What accounts for this speed up? 
+;; - Row-major (sequences of maps) versus column-major (datasets!) 
+;; - Don't need to carry column names in each row. Operate on column.
+;; - Instead of dealing with 1 million map objects we have three column objects
+;; - Strongly typed, packed memory in continuous memory enables optimizations
 
-;; Is Clojure slow? The point here is not that Clojure is slow. In many cases,
-;; clojure data structures are exactly what you want. But sometimes you need
-;; further optimization when you are operating over millions or billions of
-;; items. Moreover, sometimes you need the mental model of a tabular dataset
-;; where you can know the type of each column.
+;; Clojure isn't slow but the dataset structure enables further optimizations in
+;; a circumstance in which we often want to know exaclty what our data within
+;; each column is. 
 
-
-
-;; ## Quick tour down the stack
-
-;; Okay so now we are going to do a quick exploration of the values we were just
-;; using for the benchmark and look at their types. This will hopefully show some
-;; of the relationships in this tech stack. 
+;; ## Let's peer into the stack
 
 ;; What is the ds-data?
 
 (type ds-data)
 
-;; What is a dataset? It is just a tabular arrangement of data, like a
-;; spreadsheet or a DB table in a sense but in a form that is processable
-;; programatically. Many data scientists use this type of structure in Python's
-;; Pandas library, where such a structure is called a DataFrame. So table
-;; ergonomics are common in data analysis, and in Clojure's toolkit we call it
-;; a dataset.
-
+;; But the dataset itself is just a map
 (map? ds-data)
 
 ;; It's keys are the column headers.
