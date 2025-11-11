@@ -1,49 +1,34 @@
 # Charlotte 311 Workshop - Live Coding Guide (Minimal v2)
 
-**Total Guided Duration:** ~55-65 minutes
+**Total Guided Duration:** ~55-65 minutes.   
 **Structure:** Theory (8-10 min) → Prep (10-12 min) → Exploration (35-40 min)
 
 ---
 
-## SECTION 0: Theory - Why Datasets? (8-10 min)
+## Section 0: Slides (10 min)
 
-### Transitions
-- "Before we dive into real data, let's understand why we're using datasets"
-- "Watch this - same operation, different data structures"
-- "Now let's look under the hood at what a dataset actually is"
+**Title Slide**
+- Renamed workshop: "Clojure Toolkit that we are going to explore today enables
+  a more functional data analysis workflow than one finds in popular data
+  analysis tool such Python's Pandas."
 
-### 🎯 TEACHING MOMENT #1 - Performance Matters
-**Why datasets are fast:**
-- No redundant storage of column names in each row
-- Avoids explosion of intermediate copies
-- Strongly typed, packed in continuous memory
-- Further optimizations at the column level
+**Diagram Slide**
+- Tableplot: "Visualization library designed to be composable with tablecloth"
+- Clay: "A tool that allows us to remain close to the REPL and a normal Clojure
+  buffer and yet render visualizations and notebooks."
 
-**What to Say:**
-- "For small data, regular Clojure structures are fine"
-- "But at scale, these optimizations really matter"
-- "We're not saying Clojure is slow. Sometimes you really want a vector that can take just anything. We're saying datasets are optimized for this use case"
+## SECTION 1: Theory - Why Datasets? (10 min)
 
-### 🎯 TEACHING MOMENT #2 - Datasets ARE Maps
-**Tour the type system:**
-
-1. Dataset type → `tech.v3.dataset.impl.dataset.Dataset`
-2. But: `(map? ds-data)` → `true`
-3. Keys are column names: `(keys ds-data)`
-4. Values are columns: `(vals ds-data)`
-5. Rows are map-like: `(-> ds-data (tc/rows :as-maps) first)`
-6. But actually FastStruct views: `(-> ds-data tc/rows first type)`
-7. Columns have types: `(tcc/typeof column)`
-
-**What to Say:**
-- "It ACTS like a map - column-oriented but map-like ergonomics"
-- "Under the hood: packed, typed arrays for efficiency"
-- "You get the best of both worlds"
-
-### Properties to Demonstrate
-- Columns are countable: `(count column)`
-- Random access: `(nth column 5)`
-- But optimized storage underneath
+**Key Points:**
+- Clojure provides the dataset as an alternative to the standard data structures.
+- Processing data with the dataset is fast! 
+- Why so fast? Optimizations enabled by the column-major approach, where each
+  column is packed, typed array.
+- Touring the types
+  - We can inspect these types with Clojure functions. They are understandable to Clojure.
+  - Dataset is a special type, but it's also a map! 
+  - Columns are a special type but also much like a vector.
+  - And we can still work with sequences of maps, but this is a view onto the columns.
 
 ---
 

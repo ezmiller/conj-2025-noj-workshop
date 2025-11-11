@@ -28,6 +28,9 @@
              {:group-key group-key
               :sum-a (reduce + (map :A rows))}))))
 
+;; A dataset -- a tabular structure (rows & columns), a frankly ancient way to
+;; think about data, but also what modern data scientits so frequently use in
+;; popular libraries like Pandas.
 (def ds-data
   (tc/dataset (make-synthetic-data N)))
 
@@ -43,11 +46,12 @@
 ;; - Instead of dealing with 1 million map objects we have three column objects
 ;; - Strongly typed and packed in continuous memory enables optimizations
 
-;; Clojure isn't slow but the dataset structure enables further optimizations in
+;; Clojure isn't slow but the dataset structure enables further optimizations.
+;; For many uses in
 ;; a circumstance in which we often want to know exactly what our data within
 ;; each column is. 
 
-;; ## Let's peer into the stack. 
+;; ## Let's peer into the stack. Starting with the dataset itself.
 
 ;; What is the ds-data?
 (type ds-data)
@@ -60,6 +64,40 @@
 
 ;; It's values are the columns.
 (vals ds-data)
+
+;; Okay so let's look at the columns.
+(-> ds-data
+    tc/columns
+    first)
+
+;; If we look at it's type. it is a column as defined by 
+;; tech.ml.dataset
+(-> ds-data
+    tc/columns
+    first
+    type)
+
+;; but we can also inspect the type of the items it contains
+;; using the colun api (tcc)
+(-> ds-data
+    tc/columns
+    first
+    tcc/typeof)
+
+;; Column Properties - like vectors
+(def a-column
+  (ds-data :A))
+
+;; Random access
+(nth a-column 5)
+
+;; Countable
+(count a-column)
+
+;; Conj-able
+(-> a-column
+    (conj -9999)
+    count)
 
 ;; If we look at it as rows it's also still a sequence of maps.
 ;; So we can also think of this data as a sequence of maps still!
