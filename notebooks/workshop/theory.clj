@@ -13,12 +13,9 @@
 
 ;; A sequence of maps - row major
 (def clj-data
-  (doall (make-synthetic-data N)))
+  (make-synthetic-data N))
 
 (take 3 clj-data)
-;;=> ({:A 0.1609610807238414, :B 0.13091527472290998, :G "0"}
-;;    {:A 0.5076005921426744, :B 0.4274085497119422, :G "1"}
-;;    {:A 0.36144653864047704, :B 0.2868503683146011, :G "2"})
 
 ;; First we'll benchmark using standard data structures. Importantly, this is
 ;; also a row-major operation. We are detaling with a sequence of maps, where
@@ -29,10 +26,7 @@
       (group-by :G)
       (map (fn [[group-key rows]]
              {:group-key group-key
-              :sum-a (reduce + (map :A rows))}))
-      doall ;; result is a lazy sequence, results are deferred unless we do this
-      ))
-;;=> "Execution time mean : 1.231470 sec"
+              :sum-a (reduce + (map :A rows))}))))
 
 (def ds-data
   (tc/dataset (make-synthetic-data N)))
@@ -40,8 +34,8 @@
 (quick-bench-str
  (-> ds-data
      (tc/group-by :G)
-     (tc/aggregate {:sum-a #(tcc/sum (:A %))})))
-;;=> "Execution time mean : 50.273668 ms"
+     (tc/aggregate {:sum-a #(tcc/sum (:A %))})
+     (tc/clone)))
 
 ;; What accounts for this speed up? 
 ;; - Row-major (sequences of maps) versus column-major (datasets!) 
@@ -56,7 +50,6 @@
 ;; ## Let's peer into the stack. 
 
 ;; What is the ds-data?
-
 (type ds-data)
 
 ;; But the dataset itself is just a map
@@ -87,6 +80,6 @@
     first
     type)
 
-;; It is another special type -- a view -- onto the packed typed arrays. We can
-;; interact with this data still as a sequence of maps but underneath what we
-;; have are packed type arrays that enable radical optimziation.
+;; It is another special type that provides a view onto the packed typed arrays.
+;; We can interact with this data still as a sequence of maps but underneath
+;; what we have are packed type arrays that enable radical optimziation.
