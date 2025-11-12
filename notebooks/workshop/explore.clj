@@ -25,8 +25,7 @@
     (tc/group-by [:REQUEST_TYPE])
     (tc/aggregate {:COUNT tc/row-count})
     (tc/order-by :COUNT :desc)
-    (tc/head 10)
-    (plotly/base {:=title "Top 10 Request Types"})
+    (tc/head 10) 
     (plotly/layer-bar {:=x :REQUEST_TYPE
                        :=y :COUNT}))
 
@@ -63,10 +62,10 @@
 ;; month.
 
 ;; Let's first build a function that can convert time that way
-(defn ->first-day-of_month [str]
-  (->> str
-       (jt/local-date src-fmt)
-       (#(jt/adjust % :first-day-of-month))))
+(defn ->first-day-of_month [datestr]
+  (jt/adjust
+   (jt/local-date src-fmt datestr)
+   :first-day-of-month))
 
 ;; Test that it works. 
 (-> workshop-data
@@ -113,7 +112,7 @@
 ;; Now let's plot it using tableplot + plotly. We'll try the layer-line function
 ;; first
 (-> year-month-data
-    (tc/order-by :FIRST_DAY_OF_MONTH)
+    #_(tc/order-by :FIRST_DAY_OF_MONTH)
     (plotly/layer-line
      {:=x :FIRST_DAY_OF_MONTH
       :=color :REQUEST_TYPE
