@@ -5,11 +5,8 @@
 ;; We're using Charlotte's public 311 service request data
 ;; Source: https://data.charlottenc.gov/datasets/charlotte::service-requests-311/about
 
-(tc/dataset {:A [1 2 3] :B [4 5 6]})
- 
-
 (def raw-data
-  (tc/dataset "notebooks/data/Service_Requests_311.csv"
+  (tc/dataset "data/Service_Requests_311.csv"
               #_{:key-fn keyword}))
 
 ;; Quick look at what we have. We can use this decriptive statistics function.
@@ -32,9 +29,12 @@
                   (fn [row]
                     (<= (:FISCAL_YEAR row) 2024))))
 
-;; How many requests per year? 
+;; How many requests per year? Our first tablecloth processing expression!
+(-> raw-data
+    (tc/group-by :FISCAL_YEAR)
+    (tc/aggregate {:COUNT tc/row-count}))
 
-;; Lets' stop for a second and think about the expression above. We are using
+;; Lets' stop for a second and think about the expression  We are using
 ;; Clojure's arrow macro to pipe data through mutiple functions. This is a
 ;; pattern you will see frequently from hear on out. And this is actually
 ;; amazing! 
@@ -46,16 +46,12 @@
 ;; 
 ;;  By constrast, in Pandas you would often do the above this way:
 ;;   df = pd.read_csv ('charlotte_311.csv')
-;;   df = df.groupby ('FISCAL_YEAR').size ().reset_index (name='COUNT')
+;;   df = df.groupby ('FISCAL_YEAR').size().reset_index(name='COUNT')
 ;;   df = df.sort_values ('FISCAL_YEAR')
 ;; 
 ;; This is fine, but you've lost the original dataset. To preserve it, you'll need
 ;; to create a new copy. We do this in Clojure too, as you'll see, but we don't
 ;; need to do it as often.
-
-(-> raw-data
-    (tc/group-by :FISCAL_YEAR)
-    (tc/aggregate {:COUNT tc/row-count}))
 
 ;; Moving on: our data from year to year is pretty balanced! Between 295k-355k
 ;; per year. That's still alot of data 2M rows total. So let's limit the size
