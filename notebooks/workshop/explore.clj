@@ -169,3 +169,21 @@
 ;; irregularity. Interestingly, we can see that show up here by excluding the
 ;; outlier data from that year, we can see that the composite pattern of the
 ;; yearly cycles changes here rather significantly.
+
+(-> month-data
+    (tc/select-rows
+     (fn [row]
+       (-> row
+           :FISCAL_YEAR
+           (not= 2020))))
+    (tc/group-by [:REQUEST_TYPE :MONTH])
+    (tc/aggregate {:COUNT tc/row-count})
+    (plotly/base
+     {:=layout {:xaxis {:dtick "M2"}
+                :legend
+                {:orientation "h"
+                 :y 1.5}}})
+    (plotly/layer-line
+     {:=x :MONTH
+      :=color :REQUEST_TYPE
+      :=y :COUNT}))
