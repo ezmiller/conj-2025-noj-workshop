@@ -11,8 +11,8 @@
 ;; request types.
 (-> workshop-data
     (tc/group-by :REQUEST_TYPE)
-    (tc/aggregate {:count tc/row-count})
-    (tc/order-by :count :desc)
+    (tc/aggregate {:COUNT tc/row-count})
+    (tc/order-by :COUNT :desc)
     (tc/head 10))
 
 ;; To visualize this we can plot them using Noj's tableplot tool.
@@ -22,12 +22,12 @@
 ;; position, and we can override the result. 
 (-> workshop-data
     (tc/group-by [:REQUEST_TYPE])
-    (tc/aggregate {:count tc/row-count})
-    (tc/order-by :count :desc)
+    (tc/aggregate {:COUNT tc/row-count})
+    (tc/order-by :COUNT :desc)
     (tc/head 10)
     (plotly/base {:=title "Top 10 Request Types"})
     (plotly/layer-bar {:=x :REQUEST_TYPE
-                       :=y :count}))
+                       :=y :COUNT}))
 
 
 ;; What might be interseting now is to look at some of these requests over time. 
@@ -52,8 +52,8 @@
 (def top-five-requests
   (-> workshop-data
       (tc/group-by :REQUEST_TYPE)
-      (tc/aggregate {:count tc/row-count})
-      (tc/order-by :count :desc)
+      (tc/aggregate {:COUNT tc/row-count})
+      (tc/order-by :COUNT :desc)
       (tc/head 5)
       :$group-name
       set))
