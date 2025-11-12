@@ -1,0 +1,13 @@
+
+Challenge Questions
+
+1. What is the geographical distribution of requests? Any concentrations?
+2. Do certain requests peak on weekends versus weekdays?
+
+
+Documentation Links
+- Tablecloth Docs: https://scicloj.github.io/tablecloth
+- Tableplot Docs: https://scicloj.github.io/tableplot/
+
+
+
