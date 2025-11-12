@@ -1,6 +1,7 @@
 (ns workshop.explore
   (:require [tablecloth.api :as tc] 
             [scicloj.tableplot.v1.plotly :as plotly]
+            [scicloj.kindly.v4.kind :as kind]
             [java-time :as jt]
             [clojure.core :as c]))
 
@@ -16,7 +17,7 @@
     (tc/head 10))
 
 ;; To visualize this we can plot them using Noj's tableplot tool.
-;; Tableplot is a wrapper around plotting libraries. The one we will
+;; Tableplot is a wrapper around plotting libraries. The backend we will
 ;; use is plotly, which is a popular plotting library in Javascript.
 ;; Here too the plotly api expects the resulting object in the first
 ;; position, and we can override the result. 
@@ -28,7 +29,6 @@
     (plotly/base {:=title "Top 10 Request Types"})
     (plotly/layer-bar {:=x :REQUEST_TYPE
                        :=y :COUNT}))
-
 
 ;; What might be interseting now is to look at some of these requests over time. 
 
@@ -51,11 +51,11 @@
 ;; the top five request types as set. 
 (def top-five-requests
   (-> workshop-data
-      (tc/group-by :REQUEST_TYPE)
+      (tc/group-by [:REQUEST_TYPE])
       (tc/aggregate {:COUNT tc/row-count})
       (tc/order-by :COUNT :desc)
       (tc/head 5)
-      :$group-name
+      :REQUEST_TYPE
       set))
 
 ;; And we'll want to roll these request counts up by some cadence. Let's try
