@@ -30,7 +30,6 @@
                        :=y :count}))
 
 
-
 ;; What might be interseting now is to look at some of these requests over time. 
 
 ;; What time fields do we have?
@@ -46,7 +45,7 @@
 (-> workshop-data
     :RECEIVED_DATE
     first
-    (->> (jt/offset-date-time src-fmt)))
+    (->> (jt/local-date src-fmt)))
 
 ;; So now let's try to plot some of these request types over time. We'll take
 ;; the top five request types as set. 
