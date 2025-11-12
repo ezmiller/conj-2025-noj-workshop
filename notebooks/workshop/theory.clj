@@ -16,6 +16,9 @@
   (make-synthetic-data N))
 
 (take 3 clj-data)
+;;=> ({:A 0.4095895733406444, :B 0.25517276910804876, :G "0"}
+;;    {:A 0.009452408966254544, :B 0.005903529809523689, :G "1"}
+;;    {:A 0.47752798731142865, :B 0.6525807580073596, :G "2"})
 
 ;; First we'll benchmark using standard data structures. Importantly, this is
 ;; also a row-major operation. We are detaling with a sequence of maps, where
@@ -30,15 +33,15 @@
 
 ;; A dataset -- a tabular structure (rows & columns), a frankly ancient way to
 ;; think about data, but also what modern data scientits so frequently use in
-;; popular libraries like Pandas.
+;; popular libraries like PANDAS (dataframe).
 (def ds-data
   (tc/dataset (make-synthetic-data N)))
 
 (quick-bench-str
  (-> ds-data
      (tc/group-by :G)
-     (tc/aggregate {:sum-a #(tcc/sum (:A %))})
-     (tc/clone)))
+     (tc/aggregate {:sum-a #(tcc/sum (:A %))})))
+;;=> "Execution time mean : 49.319388 ms"
 
 ;; What accounts for this speed up? 
 ;; - Row-major (sequences of maps) versus column-major (datasets!) 
@@ -65,24 +68,12 @@
 ;; It's values are the columns.
 (vals ds-data)
 
-;; Okay so let's look at the columns.
-(-> ds-data
-    tc/columns
-    first)
-
 ;; If we look at it's type. it is a column as defined by 
 ;; tech.ml.dataset
 (-> ds-data
     tc/columns
     first
     type)
-
-;; but we can also inspect the type of the items it contains
-;; using the colun api (tcc)
-(-> ds-data
-    tc/columns
-    first
-    tcc/typeof)
 
 ;; Column Properties - like vectors
 (def a-column
